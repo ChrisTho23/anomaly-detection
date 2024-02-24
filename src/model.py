@@ -1,6 +1,5 @@
-"""File for the VAE model.
+"""File for the VAE model and loss.
 """
-
 import torch
 import torch.nn as nn
 from torch.distributions.normal import Normal
@@ -17,6 +16,7 @@ class Sampling(nn.Module):
         # apply the reparameterization trick to generate the samples in the latent space
         return z_mean + torch.exp(0.5 * z_log_var) * epsilon
 
+
 class Encoder(nn.Module):
     """The Encoder part of the Variational Autoencoder (VAE).
 
@@ -26,8 +26,17 @@ class Encoder(nn.Module):
     space distribution.
 
     Args:
-        embedding_dim (int): The dimension of the latent space.
-        embedding_dim (int): the dimension of the latent space
+        image_size (int): Number of pixels per side in picture, assuming quadratic pictures
+        embedding_dim (int): Dimension of latent space variables
+
+    Attributes:
+        conv1 (): description
+        conv2 (): description
+        conv3 (): description
+        flatten (): description
+        fc_mean (): description
+        fc_log_var (): description
+        sampling (Sampling): description
     """
     def __init__(self, image_size, embedding_dim):
         super(Encoder, self).__init__()
@@ -78,6 +87,7 @@ class Encoder(nn.Module):
         # sample a latent vector using the reparameterization trick
         z = self.sampling(z_mean, z_log_var)
         return z_mean, z_log_var, z
+
 
 class Decoder(nn.Module):
     """
@@ -130,6 +140,7 @@ class Decoder(nn.Module):
         x = torch.sigmoid(self.deconv3(x))
         return x
 
+
 class VAE(nn.Module):
     """
     Variational Autoencoder (VAE) combining both the Encoder and Decoder.
@@ -168,3 +179,48 @@ class VAE(nn.Module):
         reconstruction = self.decoder(z)
         # return the mean, log variance and the reconstructed image
         return z_mean, z_log_var, reconstruction
+
+
+def vae_gaussian_kl_loss(mu, logvar):
+    """
+
+    Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+    https://arxiv.org/abs/1312.6114
+
+    Args:
+        mu (_type_): _description_
+        logvar (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
+    return KLD.mean()
+
+def reconstruction_loss(x_reconstructed, x):
+    """
+
+    Args:
+        x_reconstructed (_type_): _description_
+        x (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    bce_loss = nn.BCELoss()
+    return bce_loss(x_reconstructed, x)
+
+def vae_loss(y_pred, y_true):
+    """_summary_
+
+    Args:
+        y_pred (_type_): _description_
+        y_true (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    mu, logvar, recon_x = y_pred
+    recon_loss = reconstruction_loss(recon_x, y_true)
+    kld_loss = vae_gaussian_kl_loss(mu, logvar)
+    return 500 * recon_loss + kld_loss
