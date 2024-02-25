@@ -11,7 +11,4 @@ if __name__ == "__main__":
         DATA["preds"], DATA["scores"], DATA["trues"],
     ]  # List of file paths to delete
     for file_path in file_paths:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        else:
-            print(f"The file {file_path} does not exist")
+        os.remove(file_path)

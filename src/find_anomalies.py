@@ -25,7 +25,7 @@ if __name__ == "__main__":
     scores = (masks.sum(1).sum(1) / (28 * 28)).detach().numpy()
     torch.save(scores, DATA["scores"])
 
-    cond = scores > EVALUATION["condition"]
+    cond = scores > EVALUATION["cond"]
     torch.save(cond, DATA["cond"])
 
     print(f"Number of images with anomalies: {cond.sum()}")
