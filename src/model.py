@@ -107,8 +107,7 @@ class Decoder(nn.Module):
             * shape_before_flattening[1]
             * shape_before_flattening[2],
         )
-        # define a reshape function to reshape the tensor back to its original shape
-        self.reshape = lambda x: x.view(-1, *shape_before_flattening)
+        self.shape_before_flattening = shape_before_flattening
         # transposed convolutional layers to upsample and generate the reconstructed image
         self.deconv1 = nn.ConvTranspose2d(
             128, 64, 3, stride=2, padding=1
@@ -119,6 +118,8 @@ class Decoder(nn.Module):
         self.deconv3 = nn.ConvTranspose2d(
             32, 1, 3, stride=2, padding=1, output_padding=1
         )
+    def reshape_tensor(self, x):
+        return x.view(-1, *self.shape_before_flattening)
     def forward(self, x):
         """
         Forward pass of the decoder.
@@ -132,7 +133,7 @@ class Decoder(nn.Module):
         # pass the latent vector through the fully connected layer
         x = self.fc(x)
         # reshape the tensor
-        x = self.reshape(x)
+        x = self.reshape_tensor(x) 
         # apply transposed convolutional layers with relu activation function
         x = F.relu(self.deconv1(x))
         x = F.relu(self.deconv2(x))

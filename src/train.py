@@ -1,10 +1,9 @@
-import numpy as np
 import torch
-from torch.utils.data import DataLoader
 import torch.optim as optim
 
-from config import DATA, MODEL
-from model import Encoder, Decoder, VAE, vae_gaussian_kl_loss, vae_loss, reconstruction_loss
+from config import MODEL
+from model import Encoder, Decoder, VAE, vae_loss
+from preprocessing import preprocessing
 
 if __name__ == "__main__":
     # we set a torch seed for reproducability when drawing from the distribution in the VAE
@@ -13,14 +12,7 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # load the data
-    data = np.load(DATA["corrupted"])
-
-    # create normalized data tensor
-    data_tensor = torch.tensor(data, dtype=torch.float32).view(
-        -1, 1, MODEL["image_size"], MODEL["image_size"]
-    ) / 255
-    # create dataloader
-    dataloader = DataLoader(data_tensor, batch_size=32, shuffle=False)
+    dataloader = preprocessing()
 
     # instantiate the encoder and decoder models
     encoder = Encoder(MODEL["image_size"], MODEL["embedding_dim"]).to(device)
@@ -32,6 +24,8 @@ if __name__ == "__main__":
     optimizer = optim.Adam(
         list(encoder.parameters()) + list(decoder.parameters())
     )
+
+    print("Start VAE training")
 
     # train model
     model.train()
@@ -47,4 +41,9 @@ if __name__ == "__main__":
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     epoch, batch_idx * len(data), len(dataloader.dataset),
                     100. * batch_idx / len(dataloader), loss.data.item()))
+
+    print("Finished VAE training")
+
+    # save model
+    torch.save(model, MODEL["vae"])
 
