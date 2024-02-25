@@ -1,3 +1,5 @@
+"""Predicts the reconstructed images for the data and saves them as numpy arrays and torch tensors.
+"""
 import torch 
 import numpy as np
 

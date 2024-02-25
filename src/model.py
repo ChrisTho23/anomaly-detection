@@ -1,4 +1,4 @@
-"""File for the VAE model and loss.
+"""Defines the VAE model and loss.
 """
 import torch
 import torch.nn as nn
@@ -184,42 +184,51 @@ class VAE(nn.Module):
 
 def vae_gaussian_kl_loss(mu, logvar):
     """
+    Compute the Kullback-Leibler divergence loss for the Variational Autoencoder.
+    This function calculates the divergence between the learned latent distribution
+    and a standard Gaussian distribution.
 
+    Reference:
     Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
     https://arxiv.org/abs/1312.6114
 
     Args:
-        mu (_type_): _description_
-        logvar (_type_): _description_
+        mu (torch.Tensor): The mean vector of the latent Gaussian distribution.
+        logvar (torch.Tensor): The logarithm of the variance vector of the latent Gaussian distribution.
 
     Returns:
-        _type_: _description_
+        torch.Tensor: The mean Kullback-Leibler divergence across the batch.
     """
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
     return KLD.mean()
 
 def reconstruction_loss(x_reconstructed, x):
     """
+    Calculate the reconstruction loss between the original input and its reconstruction.
+    This is typically calculated as the Binary Cross Entropy (BCE) loss.
 
     Args:
-        x_reconstructed (_type_): _description_
-        x (_type_): _description_
+        x_reconstructed (torch.Tensor): The reconstructed data.
+        x (torch.Tensor): The original input data.
 
     Returns:
-        _type_: _description_
+        torch.Tensor: The calculated reconstruction loss.
     """
     bce_loss = nn.BCELoss()
     return bce_loss(x_reconstructed, x)
 
 def vae_loss(y_pred, y_true):
-    """_summary_
+    """
+    Calculate the total loss for the Variational Autoencoder (VAE), which is the sum of 
+    the reconstruction loss and the Kullback-Leibler divergence loss.
 
     Args:
-        y_pred (_type_): _description_
-        y_true (_type_): _description_
+        y_pred (tuple of torch.Tensor): A tuple containing the predicted mean (mu), 
+                                        logarithm of variance (logvar), and reconstructed data.
+        y_true (torch.Tensor): The original input data.
 
     Returns:
-        _type_: _description_
+        torch.Tensor: The total VAE loss.
     """
     mu, logvar, recon_x = y_pred
     recon_loss = reconstruction_loss(recon_x, y_true)

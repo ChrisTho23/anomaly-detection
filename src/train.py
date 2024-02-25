@@ -1,3 +1,5 @@
+"""Trains the VAE model using the preprocessed data and saves the model to the specified path.
+"""
 import torch
 import torch.optim as optim
 

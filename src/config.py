@@ -1,3 +1,5 @@
+"""Script containing the configuration of the project.
+"""
 from pathlib import Path
 
 DATA = {
@@ -17,5 +19,5 @@ MODEL = {
 }
 
 EVALUATION = {
-    'cond': 0.15, # condition fo
+    'cond': 0.15, # threshold for defining an image as anomalous
 }

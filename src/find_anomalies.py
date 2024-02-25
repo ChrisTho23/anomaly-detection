@@ -1,3 +1,5 @@
+"""Finds anomalies in the predictions based on mask and pre-defined threshold.
+"""
 import torch
 
 from config import DATA, EVALUATION
